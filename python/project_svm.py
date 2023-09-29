@@ -30,7 +30,7 @@ Support vector machine
 '''
 
 def svm_routine(features, labels, kernel, parameter, coef0, test_size):
-    
+
     # --- split data ----
     (train_features, test_features, 
      train_labels, test_labels) = train_test_split(features, labels, test_size = test_size)
@@ -38,7 +38,7 @@ def svm_routine(features, labels, kernel, parameter, coef0, test_size):
     if kernel == 'linear':
         svm_model = SVC(kernel=kernel)
     if kernel == 'poly': 
-        svm_model = SVC(kernel=kernel, gamma = parameter, coef0=coef0)
+        svm_model = SVC(kernel=kernel, gamma = parameter, coef0 = coef0)
     else:
         svm_model = SVC(kernel=kernel, gamma = parameter)
     
