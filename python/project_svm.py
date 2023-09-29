@@ -63,10 +63,10 @@ if __name__ == '__main__':
     features, labels, N = parse_data(training_data)
     
     # --- Hyperparameters --- #
-    gamma = 0.01
-    kernel = 'rbf'
-    coef0 = 0
-    test_size = 0.3 
+    gamma = 4
+    kernel = 'linear'
+    coef0 = 1
+    test_size = 0.4 
 
     # --- Training  ---- #
     test_labels, predicted_labels = svm_routine(features=features,
