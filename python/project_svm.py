@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
+from sklearn.naive_bayes import *
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from sklearn.linear_model import LogisticRegression as LR
@@ -27,7 +28,6 @@ def parse_data(data: pd.DataFrame):
     features = data.drop(columns='Label')
     labels = data['Label']
     N = len(data.index)
-    print(N)
     return features, labels, N
 
 def clean(data: pd.DataFrame):
@@ -164,7 +164,10 @@ if __name__ == '__main__':
     # --- Data --- #
     datadir = '/Users/danvicente/Statistik/SF2935 - Modern Methods/Project/data/'
     training_set = 'project_train.csv' # NOTE: project_train.csv has 505 samples and 11 features
+    test_set ='project_test.csv'
     training_data = import_data(datadir+training_set)
+    test_data = import_data(datadir+test_set)
+
     clean_data = clean(training_data)
     features, labels, N = parse_data(clean_data)
 
@@ -192,7 +195,7 @@ if __name__ == '__main__':
     svc_pca = []
     bagged_lda_pca = []
 
-    for k in range(500):
+    for k in range(2):
 
         # --- PCA data --- #
         skf = StratifiedKFold(n_splits=10, shuffle=True)
@@ -224,3 +227,76 @@ if __name__ == '__main__':
     print('======================= LDA ==========================')
     print(f'Mean of accuracy (normalized data) = {np.mean(bagged_lda_norm)}')
     print(f'Mean of accuracy (PCA) = {np.mean(bagged_lda_pca)}')
+
+    # --- train model on full data --- #
+    
+    model = SVC(kernel='rbf', gamma=0.1)
+    model2 = LDA()
+    model3 = GaussianNB()
+
+    model.fit(norm_features, labels)
+    model2.fit(norm_features, labels)
+    model3.fit(norm_features, labels)
+
+    std = StandardScaler()
+    norm_data = std.fit_transform(test_data)
+    classes = model.predict(norm_data)
+    classes2 = model2.predict(norm_data)
+    classes3 = model3.predict(norm_data)
+    print(classes)
+    '''
+    [0, 0, 1, 0, 1, 1, 0, 1,
+      1, 1, 0, 0, 0, 0, 1, 1,
+        1, 0, 0, 0, 0, 1, 0, 1,
+          0, 1, 0, 1, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 1, 0, 1,
+              1, 0, 0, 1, 0, 0, 0, 0,
+                0, 1, 1, 0, 1, 0, 0, 0,
+                  0, 0, 0, 1, 1, 0, 0, 1,
+                    0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0]
+    '''
+    print('===================== c.f RF =======================')
+    anton_1 = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+           0, 0, 1, 1, 0, 1, 1, 1, 0, 0,
+             0, 1, 0, 1, 1, 1, 1, 1, 1, 0,
+               1, 1, 0, 1, 1, 0, 1, 1, 0,
+                 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                   1, 1, 1, 0, 1, 1, 1, 1,
+                     1, 1, 1, 1, 1, 1, 1, 1,
+                       1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1]
+    
+    anton_2 = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                0, 0, 1, 1, 1, 1, 1, 1, 1, 0,
+                  0, 1, 0, 1, 1, 1, 1, 1, 1, 0,
+                    1, 1, 0, 1, 1, 0, 1, 1, 0,
+                      1, 1, 1, 1, 1, 1, 1, 0, 1,
+                        1, 1, 1, 0, 1, 1, 1, 1, 1,
+                          1, 1, 1, 1, 0, 1, 1, 1,
+                            0, 1, 0, 1, 1, 1, 1, 1, 1, 1]
+    
+    anton_3 = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                0, 0, 1, 1, 1, 1, 1, 1, 1, 0,
+                  0, 1, 0, 1, 1, 1, 1, 1, 1, 0,
+                    1, 1, 0, 1, 1, 0, 1, 1, 0,
+                      1, 1, 1, 1, 1, 1, 1, 0, 1,
+                        1, 1, 1, 0, 1, 1, 1, 1,
+                          1, 1, 1, 1, 1, 0, 1, 1,
+                            1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0]
+    print(f'Length of test-set: {len(anton_1)}')
+    print(f'Amount of common classifications between RF and SVM: {len(np.where(classes==anton_3)[0])}')
+
+    print('==================== c.f KNN ========================')
+    marwin_preds = [0, 0, 0, 0, 1, 1, 0, 1, 1, 1,
+                     0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 
+                     0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 1, 0, 1, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 1, 1, 0, 0, 0, 0, 0,
+                         1, 0, 0, 0, 1, 0, 1, 1, 0]
+    print(f'Amount of common classifications between KNN and SVM: {len(np.where(classes==marwin_preds)[0])}')
+    
+    print('================= c.f other models =====================')
+    print(f'Amount of common classifications between LDA and SVM: {len(np.where(classes2 == classes)[0])}')
+    print(f'Amount of common classifications between NB and SVM: {len(np.where(classes3 == classes)[0])}')
+    print(f'Amount of common classifications between RF and NB: {len(np.where(classes3 == anton_3)[0])}')
+    print(f'Amount of common classifications between RF and LDA: {len(np.where(classes2 == anton_3)[0])}')
