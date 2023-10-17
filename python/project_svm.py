@@ -103,7 +103,7 @@ def log_regression(train_features, train_labels,
 def compute_accuracy(predicted, true):
     return np.mean(true == predicted)
 
-def manual_accuracy(skf, features, labels, kernel, gamma, coef0)
+def manual_accuracy(skf, features, labels, kernel, gamma, coef0):
     # --- Manual calculation of mean accuracies --- #
     lda_acc = []
     svm_acc = []
