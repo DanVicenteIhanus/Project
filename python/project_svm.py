@@ -151,12 +151,12 @@ def manual_accuracy(skf, features, labels, kernel, gamma, coef0)
         svm_acc.append(compute_accuracy(predicted_labels, test_labels))
     print(f'LDA acc = {np.mean(lda_acc)}')
     print(f'SVM acc = {np.mean(svm_acc)}')
-    
+    return
+
 '''
 ------------------------------------
 Main script
 ------------------------------------
-
 '''
 
 if __name__ == '__main__':
