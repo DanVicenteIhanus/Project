@@ -31,6 +31,7 @@ def parse_data(data: pd.DataFrame):
     return features, labels, N
 
 def clean(data: pd.DataFrame):
+    data.drop_duplicates(inplace=True)
     data.loc[data['loudness'] < -100, 'loudness'] = data.drop(data[data['loudness'] < -100].index)['loudness'].mean()
     data.loc[data['energy'] > 500, 'energy'] = data.drop(data[data['energy'] > 500].index)['energy'].mean()
     return data 
@@ -102,7 +103,55 @@ def log_regression(train_features, train_labels,
 def compute_accuracy(predicted, true):
     return np.mean(true == predicted)
 
+def manual_accuracy(skf, features, labels, kernel, gamma, coef0)
+    # --- Manual calculation of mean accuracies --- #
+    lda_acc = []
+    svm_acc = []
+    for train_ind, test_ind in skf.split(features, labels):
+        train_features = features.iloc[train_ind]
+        test_features = features.iloc[test_ind]
+        train_labels = labels.iloc[train_ind]
+        test_labels = labels.iloc[test_ind]
 
+
+        # --- Training SVM ---- #
+        predicted_labels = svm_routine(train_features = train_features,
+                                                    train_labels = train_labels,
+                                                    test_features = test_features,
+                                                    kernel = kernel,
+                                                    parameter = gamma,
+                                                    coef0=coef0)
+        
+        # --- Training QDA --- #
+        predicted_labels_QDA = qda_routine(train_features = train_features,
+                                                            train_labels = train_labels, 
+                                                            test_features = test_features)
+        
+        # --- Training LDA --- #
+        predicted_labels_LDA = lda_routine(train_features = train_features,
+                                                            train_labels = train_labels, 
+                                                            test_features = test_features)
+        
+        # --- Evaluate models --- #
+        result = classification_report(test_labels, predicted_labels)
+        result_qda = classification_report(test_labels, predicted_labels_QDA)
+        result_lda = classification_report(test_labels, predicted_labels_LDA)
+
+        #print(f'--- Classification report from SVM with Kernel= {kernel} ----')
+        #print(result)
+        #print(f'Accuracy = {compute_accuracy(predicted_labels, test_labels)}')
+        #print(f'--- Classification report from QDA ----')
+        #print(result_qda)
+        #print(f'Accuracy = {compute_accuracy(predicted_labels_QDA, test_labels)}')
+        #print(f'--- Classification report from LDA ----')
+        #print(result_lda)
+        #print(f'Accuracy = {compute_accuracy(predicted_labels_LDA, test_labels)}')
+        #print('----')
+        lda_acc.append(compute_accuracy(predicted_labels_LDA, test_labels))
+        svm_acc.append(compute_accuracy(predicted_labels, test_labels))
+    print(f'LDA acc = {np.mean(lda_acc)}')
+    print(f'SVM acc = {np.mean(svm_acc)}')
+    
 '''
 ------------------------------------
 Main script
@@ -116,7 +165,6 @@ if __name__ == '__main__':
     datadir = '/Users/danvicente/Statistik/SF2935 - Modern Methods/Project/data/'
     training_set = 'project_train.csv' # NOTE: project_train.csv has 505 samples and 11 features
     training_data = import_data(datadir+training_set)
-    training_data.drop_duplicates(inplace=True)
     clean_data = clean(training_data)
     features, labels, N = parse_data(clean_data)
 
@@ -176,53 +224,3 @@ if __name__ == '__main__':
     print('======================= LDA ==========================')
     print(f'Mean of accuracy (normalized data) = {np.mean(bagged_lda_norm)}')
     print(f'Mean of accuracy (PCA) = {np.mean(bagged_lda_pca)}')
-
-    # --- Manual calculation of mean accuracies --- #
-    '''
-    lda_acc = []
-    svm_acc = []
-    for train_ind, test_ind in skf.split(features, labels):
-        train_features = features.iloc[train_ind]
-        test_features = features.iloc[test_ind]
-        train_labels = labels.iloc[train_ind]
-        test_labels = labels.iloc[test_ind]
-
-
-        # --- Training SVM ---- #
-        predicted_labels = svm_routine(train_features = train_features,
-                                                    train_labels = train_labels,
-                                                    test_features = test_features,
-                                                    kernel = kernel,
-                                                    parameter = gamma,
-                                                    coef0=coef0)
-        
-        # --- Training QDA --- #
-        predicted_labels_QDA = qda_routine(train_features = train_features,
-                                                            train_labels = train_labels, 
-                                                            test_features = test_features)
-        
-        # --- Training LDA --- #
-        predicted_labels_LDA = lda_routine(train_features = train_features,
-                                                            train_labels = train_labels, 
-                                                            test_features = test_features)
-        
-        # --- Evaluate models --- #
-        result = classification_report(test_labels, predicted_labels)
-        result_qda = classification_report(test_labels, predicted_labels_QDA)
-        result_lda = classification_report(test_labels, predicted_labels_LDA)
-
-        #print(f'--- Classification report from SVM with Kernel= {kernel} ----')
-        #print(result)
-        #print(f'Accuracy = {compute_accuracy(predicted_labels, test_labels)}')
-        #print(f'--- Classification report from QDA ----')
-        #print(result_qda)
-        #print(f'Accuracy = {compute_accuracy(predicted_labels_QDA, test_labels)}')
-        #print(f'--- Classification report from LDA ----')
-        #print(result_lda)
-        #print(f'Accuracy = {compute_accuracy(predicted_labels_LDA, test_labels)}')
-        #print('----')
-        lda_acc.append(compute_accuracy(predicted_labels_LDA, test_labels))
-        svm_acc.append(compute_accuracy(predicted_labels, test_labels))
-    '''
-    #print(f'LDA acc = {np.mean(lda_acc)}')
-    #print(f'SVM acc = {np.mean(svm_acc)}')
