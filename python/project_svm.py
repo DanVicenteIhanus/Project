@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
-from matplotlib import pyplot as plt
 from sklearn.metrics import classification_report
-from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.naive_bayes import *
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
@@ -12,7 +10,6 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import cross_val_score
-from sklearn.ensemble import BaggingClassifier
 from scipy import stats
 
 '''
@@ -170,6 +167,11 @@ if __name__ == '__main__':
 
     clean_data = clean(training_data)
     features, labels, N = parse_data(clean_data)
+    
+    # Verify amount of classes
+    print('================ Class distribution ==================')
+    print(f'Amount of liked songs:{len(labels.loc[labels==1])}')
+    print(f'Amount of disliked songs: {len(labels.loc[labels==0])}')
 
     # normalize data
     std = StandardScaler()
@@ -195,6 +197,7 @@ if __name__ == '__main__':
     svc_pca = []
     bagged_lda_pca = []
 
+    svc_norm_f1 = []
     for k in range(2):
 
         # --- PCA data --- #
@@ -209,6 +212,7 @@ if __name__ == '__main__':
         skf2 = StratifiedKFold(n_splits=10, shuffle=True)
         cv_norm_svc = cross_val_score(SVC(kernel=kernel, gamma=0.1), norm_features, labels, scoring='accuracy',
                         cv = skf2, verbose=0)
+        cv_norm_svc_f1 = cross_val_score(SVC(kernel=kernel, gamma=0.1), norm_features, labels, scoring='f1')
         cv_norm_lda = cross_val_score(LDA(), norm_features, labels, 
                                 scoring = 'accuracy', cv = skf2, verbose=0)
         
@@ -217,12 +221,14 @@ if __name__ == '__main__':
         #print(f'cross val score LDA (normalized data) : {np.mean(cv_norm_lda)}')
         #print(f'cross val score SVM (normalized data) : {np.mean(cv_norm_svc)}')
         svc_norm.append(cv_norm_svc)
+        svc_norm_f1.append(cv_norm_svc_f1)
         svc_pca.append(cv_pca_svc)
         bagged_lda_norm.append(cv_norm_lda)
         bagged_lda_pca.append(cv_pca_lda)
     
     print('======================= SVM ==========================')
     print(f'Mean of accuracy (normalized data) = {np.mean(svc_norm)}')
+    print(f'Mean of f1-score (normalized data) = {np.mean(svc_norm_f1)}')
     print(f'Mean of accuracy (PCA) = {np.mean(svc_pca)}')
     print('======================= LDA ==========================')
     print(f'Mean of accuracy (normalized data) = {np.mean(bagged_lda_norm)}')
@@ -243,7 +249,8 @@ if __name__ == '__main__':
     classes = model.predict(norm_data)
     classes2 = model2.predict(norm_data)
     classes3 = model3.predict(norm_data)
-    print(classes)
+    print(type(classes))
+
     '''
     [0, 0, 1, 0, 1, 1, 0, 1,
       1, 1, 0, 0, 0, 0, 1, 1,
@@ -255,7 +262,7 @@ if __name__ == '__main__':
                   0, 0, 0, 1, 1, 0, 0, 1,
                     0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0]
     '''
-    print('===================== c.f RF =======================')
+    print('====================== c.f RF ========================')
     anton_1 = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
            0, 0, 1, 1, 0, 1, 1, 1, 0, 0,
              0, 1, 0, 1, 1, 1, 1, 1, 1, 0,
@@ -285,7 +292,7 @@ if __name__ == '__main__':
     print(f'Length of test-set: {len(anton_1)}')
     print(f'Amount of common classifications between RF and SVM: {len(np.where(classes==anton_3)[0])}')
 
-    print('==================== c.f KNN ========================')
+    print('===================== c.f KNN ========================')
     marwin_preds = [0, 0, 0, 0, 1, 1, 0, 1, 1, 1,
                      0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 
                      0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0,
@@ -293,10 +300,12 @@ if __name__ == '__main__':
                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                          0, 0, 0, 1, 1, 0, 0, 0, 0, 0,
                          1, 0, 0, 0, 1, 0, 1, 1, 0]
+    
     print(f'Amount of common classifications between KNN and SVM: {len(np.where(classes==marwin_preds)[0])}')
     
-    print('================= c.f other models =====================')
+    print('================= c.f other models ===================')
     print(f'Amount of common classifications between LDA and SVM: {len(np.where(classes2 == classes)[0])}')
     print(f'Amount of common classifications between NB and SVM: {len(np.where(classes3 == classes)[0])}')
     print(f'Amount of common classifications between RF and NB: {len(np.where(classes3 == anton_3)[0])}')
     print(f'Amount of common classifications between RF and LDA: {len(np.where(classes2 == anton_3)[0])}')
+    print(f'Amount of common classifications between RF and KNN: {len(np.where(np.asarray(marwin_preds) == np.asarray(anton_3))[0])}')
