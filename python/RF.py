@@ -32,14 +32,14 @@ def main():
     preprocessor = ColumnTransformer(transformers=[
         ('num', num_transformer, df.select_dtypes(include=['float64']).columns)
     ])
-    #8437254901960785
+
     classifier = RandomForestClassifier(criterion='entropy',
                                         random_state=RANDOM_STATE,
                                  n_estimators=100,
                                  min_samples_split=2,
                                  min_samples_leaf=1,
                                  min_impurity_decrease=0.005,
-                                 max_leaf_nodes=50, #max_features=None,
+                                 max_leaf_nodes=50,
                                  max_depth=12,
                                  bootstrap=True)
 
@@ -56,9 +56,6 @@ def main():
     X_test = pd.DataFrame(scaler.fit_transform(df_test), columns=df_test.columns)
     predictions = final_classifier.predict(X_test)
     predictions_train = final_classifier.predict(X)
-
-    #print("Predictions: ", predictions)
-    #print("Training Predictions: ", predictions_train)
 
     print("Forest accuracy during cross validation: " + str(cval_acc))
 
