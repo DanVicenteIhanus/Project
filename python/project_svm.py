@@ -195,27 +195,31 @@ if __name__ == '__main__':
     svc_norm = []
     bagged_lda_norm = []
     svc_pca = []
+    svc_pca_f1 = []
     bagged_lda_pca = []
 
     svc_norm_f1 = []
-    for k in range(2):
+    for k in range(50):
 
         # --- PCA data --- #
         skf = StratifiedKFold(n_splits=10, shuffle=True)
 
-        cv_pca_svc = cross_val_score(SVC(kernel=kernel, gamma=gamma), pca_features, labels, scoring='accuracy',
-                        cv = skf, verbose=0)
+        cv_pca_svc = cross_val_score(SVC(kernel=kernel, gamma=gamma), pca_features, labels, 
+                                     scoring='accuracy', cv = skf, verbose=0)
         cv_pca_lda = cross_val_score(LDA(), pca_features, labels, 
                                 scoring = 'accuracy', cv = skf, verbose=0)
-        
+        cv_pca_svc_f1 = cross_val_score(SVC(kernel=kernel, gamma=gamma), pca_features, labels, 
+                                     scoring='f1', cv = skf, verbose=0)
         # --- Normalized  data --- #
         skf2 = StratifiedKFold(n_splits=10, shuffle=True)
         cv_norm_svc = cross_val_score(SVC(kernel=kernel, gamma=0.1), norm_features, labels, scoring='accuracy',
                         cv = skf2, verbose=0)
-        cv_norm_svc_f1 = cross_val_score(SVC(kernel=kernel, gamma=0.1), norm_features, labels, scoring='f1')
+        cv_norm_svc_f1 = cross_val_score(SVC(kernel=kernel, gamma=0.1), norm_features, labels, 
+                                         scoring='f1', cv = skf2, verbose=0)
         cv_norm_lda = cross_val_score(LDA(), norm_features, labels, 
                                 scoring = 'accuracy', cv = skf2, verbose=0)
-        
+        cv_norm_lda_fc = cross_val_score(LDA(), norm_features, labels,
+                                          scoring='f1', cv=skf2, verbose=0)
         #print(f'cross val score LDA (PCA): {np.mean(cv_pca_lda)}')
         #print(f'cross val score SVM (PCA): {np.mean(cv_pca_svc)}')
         #print(f'cross val score LDA (normalized data) : {np.mean(cv_norm_lda)}')
@@ -223,6 +227,7 @@ if __name__ == '__main__':
         svc_norm.append(cv_norm_svc)
         svc_norm_f1.append(cv_norm_svc_f1)
         svc_pca.append(cv_pca_svc)
+        svc_pca_f1.append(cv_norm_svc_f1)
         bagged_lda_norm.append(cv_norm_lda)
         bagged_lda_pca.append(cv_pca_lda)
     
@@ -230,6 +235,8 @@ if __name__ == '__main__':
     print(f'Mean of accuracy (normalized data) = {np.mean(svc_norm)}')
     print(f'Mean of f1-score (normalized data) = {np.mean(svc_norm_f1)}')
     print(f'Mean of accuracy (PCA) = {np.mean(svc_pca)}')
+    print(f'Mean of f1-score (PCA) = {np.mean(svc_pca_f1)}')
+
     print('======================= LDA ==========================')
     print(f'Mean of accuracy (normalized data) = {np.mean(bagged_lda_norm)}')
     print(f'Mean of accuracy (PCA) = {np.mean(bagged_lda_pca)}')
@@ -249,8 +256,10 @@ if __name__ == '__main__':
     classes = model.predict(norm_data)
     classes2 = model2.predict(norm_data)
     classes3 = model3.predict(norm_data)
-    print(type(classes))
-
+    print(classes)
+    classes_df = pd.DataFrame({'data_point': range(1, len(classes) + 1), 'class': classes})
+    classes_df.to_csv(datadir + 'svm_classified.csv', index=False)
+    
     '''
     [0, 0, 1, 0, 1, 1, 0, 1,
       1, 1, 0, 0, 0, 0, 1, 1,
